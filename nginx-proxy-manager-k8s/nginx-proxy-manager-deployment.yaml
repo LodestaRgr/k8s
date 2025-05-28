@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-proxy-manager
+  namespace: nginx-proxy-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-proxy-manager
+  template:
+    metadata:
+      labels:
+        app: nginx-proxy-manager
+    spec:
+      containers:
+        - name: npm
+          image: jc21/nginx-proxy-manager:2.12.3
+          env:
+            - name: TZ
+              value: "Europe/Moscow"
+          ports:
+            - { containerPort: 80,  name: http }
+            - { containerPort: 443, name: https }
+            - { containerPort: 81,  name: admin }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+            - { name: lets, mountPath: /etc/letsencrypt }
+          livenessProbe:
+            httpGet: { path: /, port: admin }
+            initialDelaySeconds: 30
+          readinessProbe:
+            httpGet: { path: /, port: admin }
+            initialDelaySeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: npm-data
+        - name: lets
+          persistentVolumeClaim:
+            claimName: npm-lets
