@@ -1,9 +1,11 @@
-# restore-npm.yaml
 apiVersion: v1
 kind: Pod
 metadata:
   name: npm-restore
   namespace: nginx-proxy-manager
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
   restartPolicy: Never
   volumes:
