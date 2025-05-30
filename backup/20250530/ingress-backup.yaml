@@ -1,0 +1,272 @@
+apiVersion: v1
+items:
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{},"name":"podinfo-ingress","namespace":"default"},"spec":{"defaultBackend":{"service":{"name":"podinfo","port":{"number":9898}}},"ingressClassName":"nginx","rules":[{"host":"podinfo.k8s.local"}]}}
+    creationTimestamp: "2024-11-26T09:05:17Z"
+    generation: 1
+    name: podinfo-ingress
+    namespace: default
+    resourceVersion: "32928205"
+    uid: eaff8f92-5acf-46da-9ff7-a8916b9b6453
+  spec:
+    defaultBackend:
+      service:
+        name: podinfo
+        port:
+          number: 9898
+    ingressClassName: nginx
+    rules:
+    - host: podinfo.k8s.local
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 172.20.0.71
+      - ip: 172.20.0.72
+      - ip: 172.20.0.73
+      - ip: 172.20.0.74
+      - ip: 172.20.0.75
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: nameOfClusterIssuer
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"nameOfClusterIssuer","nginx.ingress.kubernetes.io/backend-protocol":"HTTPS","nginx.ingress.kubernetes.io/ssl-passthrough":"true"},"name":"iredmail-ingress","namespace":"iredmail-server"},"spec":{"ingressClassName":"nginx","rules":[{"host":"ired.bavaria-catering.ru","http":{"paths":[{"backend":{"service":{"name":"iredmail","port":{"number":443}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["ired.bavaria-catering.ru"],"secretName":"iredmail-certs"}]}}
+      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    creationTimestamp: "2024-11-29T08:40:06Z"
+    generation: 1
+    name: iredmail-ingress
+    namespace: iredmail-server
+    resourceVersion: "32928204"
+    uid: 335b50ae-9cb0-4f88-a252-21231aed8f85
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: ired.bavaria-catering.ru
+      http:
+        paths:
+        - backend:
+            service:
+              name: iredmail
+              port:
+                number: 443
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - ired.bavaria-catering.ru
+      secretName: iredmail-certs
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 172.20.0.71
+      - ip: 172.20.0.72
+      - ip: 172.20.0.73
+      - ip: 172.20.0.74
+      - ip: 172.20.0.75
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: nameOfClusterIssuer
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"nameOfClusterIssuer","kubernetes.io/ingress.class":"nginx","nginx.ingress.kubernetes.io/backend-protocol":"HTTPS","nginx.ingress.kubernetes.io/ssl-passthrough":"true"},"name":"kubernetes-dashboard-ingress","namespace":"kube-dashboard"},"spec":{"ingressClassName":"nginx","rules":[{"host":"dashboard.k8s.local","http":{"paths":[{"backend":{"service":{"name":"kubernetes-dashboard","port":{"number":443}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["dashboard.k8s.local"],"secretName":"kubernetes-dashboard-certs"}]}}
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    creationTimestamp: "2024-11-21T06:50:16Z"
+    generation: 1
+    name: kubernetes-dashboard-ingress
+    namespace: kube-dashboard
+    resourceVersion: "32928236"
+    uid: 9efca436-0866-4978-9088-29b09f92218e
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: dashboard.k8s.local
+      http:
+        paths:
+        - backend:
+            service:
+              name: kubernetes-dashboard
+              port:
+                number: 443
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - dashboard.k8s.local
+      secretName: kubernetes-dashboard-certs
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 172.20.0.71
+      - ip: 172.20.0.72
+      - ip: 172.20.0.73
+      - ip: 172.20.0.74
+      - ip: 172.20.0.75
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{},"name":"registry","namespace":"kube-system"},"spec":{"rules":[{"host":null,"http":{"paths":[{"backend":{"service":{"name":"registry","port":{"number":5000}}},"path":"/","pathType":"Prefix"}]}}]}}
+    creationTimestamp: "2024-11-12T10:13:57Z"
+    generation: 1
+    name: registry
+    namespace: kube-system
+    resourceVersion: "32928206"
+    uid: 58cc51dd-d12b-4878-a3a0-29c50aeddb8d
+  spec:
+    rules:
+    - http:
+        paths:
+        - backend:
+            service:
+              name: registry
+              port:
+                number: 5000
+          path: /
+          pathType: Prefix
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 172.20.0.71
+      - ip: 172.20.0.72
+      - ip: 172.20.0.73
+      - ip: 172.20.0.74
+      - ip: 172.20.0.75
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/issuer: grafana-selfsigned
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/issuer":"grafana-selfsigned","nginx.ingress.kubernetes.io/backend-protocol":"HTTPS","nginx.ingress.kubernetes.io/proxy-connect-timeout":"600","nginx.ingress.kubernetes.io/proxy-read-timeout":"600","nginx.ingress.kubernetes.io/proxy-send-timeout":"600","nginx.ingress.kubernetes.io/rewrite-target":"/","nginx.ingress.kubernetes.io/ssl-passthrough":"true","nginx.ingress.kubernetes.io/ssl-redirect":"true"},"name":"grafana-ingress","namespace":"monitoring"},"spec":{"ingressClassName":"nginx","rules":[{"host":"grafana.k8s.local","http":{"paths":[{"backend":{"service":{"name":"grafana","port":{"number":3000}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["grafana.k8s.local"],"secretName":"grafana-certs"}]}}
+      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    creationTimestamp: "2024-11-26T09:23:52Z"
+    generation: 1
+    name: grafana-ingress
+    namespace: monitoring
+    resourceVersion: "32928230"
+    uid: 759643c4-2daf-4682-966e-3b8aacef43e4
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: grafana.k8s.local
+      http:
+        paths:
+        - backend:
+            service:
+              name: grafana
+              port:
+                number: 3000
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - grafana.k8s.local
+      secretName: grafana-certs
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 172.20.0.71
+      - ip: 172.20.0.72
+      - ip: 172.20.0.73
+      - ip: 172.20.0.74
+      - ip: 172.20.0.75
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/issuer: prometheus-selfsigned
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/issuer":"prometheus-selfsigned","kubernetes.io/ingress.class":"nginx","nginx.ingress.kubernetes.io/backend-protocol":"HTTP","nginx.ingress.kubernetes.io/proxy-connect-timeout":"60s","nginx.ingress.kubernetes.io/proxy-read-timeout":"60s","nginx.ingress.kubernetes.io/proxy-send-timeout":"60s","nginx.ingress.kubernetes.io/ssl-passthrough":"true"},"name":"prometheus-ingress","namespace":"monitoring"},"spec":{"ingressClassName":"nginx","rules":[{"host":"prometheus.k8s.local","http":{"paths":[{"backend":{"service":{"name":"prometheus-k8s","port":{"number":9090}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["prometheus.k8s.local"],"secretName":"prometheus-certs"}]}}
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/backend-protocol: HTTP
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: 60s
+      nginx.ingress.kubernetes.io/proxy-read-timeout: 60s
+      nginx.ingress.kubernetes.io/proxy-send-timeout: 60s
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    creationTimestamp: "2024-11-26T08:00:07Z"
+    generation: 1
+    name: prometheus-ingress
+    namespace: monitoring
+    resourceVersion: "32928223"
+    uid: 46c18c2e-40e6-4b72-b902-46d2244a55e5
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: prometheus.k8s.local
+      http:
+        paths:
+        - backend:
+            service:
+              name: prometheus-k8s
+              port:
+                number: 9090
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - prometheus.k8s.local
+      secretName: prometheus-certs
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 172.20.0.71
+      - ip: 172.20.0.72
+      - ip: 172.20.0.73
+      - ip: 172.20.0.74
+      - ip: 172.20.0.75
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/force-ssl-redirect":"true"},"name":"n8n-ingress","namespace":"n8n"},"spec":{"rules":[{"host":"n8n.k8s.local","http":{"paths":[{"backend":{"service":{"name":"n8n","port":{"number":5678}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["n8n.k8s.local"],"secretName":"dummy-cert"}]}}
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    creationTimestamp: "2025-05-26T10:47:19Z"
+    generation: 5
+    name: n8n-ingress
+    namespace: n8n
+    resourceVersion: "32928244"
+    uid: b9f825f9-8951-4a5f-a35a-e9675a511d6f
+  spec:
+    rules:
+    - host: n8n.k8s.local
+      http:
+        paths:
+        - backend:
+            service:
+              name: n8n
+              port:
+                number: 5678
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - n8n.k8s.local
+      secretName: dummy-cert
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 172.20.0.71
+      - ip: 172.20.0.72
+      - ip: 172.20.0.73
+      - ip: 172.20.0.74
+      - ip: 172.20.0.75
+kind: List
+metadata:
+  resourceVersion: ""

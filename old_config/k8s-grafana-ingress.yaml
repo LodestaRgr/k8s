@@ -1,0 +1,61 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: grafana-selfsigned
+  namespace: monitoring
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-selfsigned-crt
+  namespace: monitoring
+  annotations:
+    cert-manager.io/delete-after-use: "true"
+spec:
+  secretName: grafana-certs
+  isCA: false
+  issuerRef:
+    name: grafana-selfsigned
+    kind: Issuer
+  commonName: grafana.k8s.local
+  dnsNames:
+    - grafana.k8s.local
+  duration: 876000h # expires in 100 years
+  renewBefore: 8760h
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: monitoring
+  annotations:
+    #kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    #cert-manager.io/cluster-issuer: nameOfClusterIssuer
+    cert-manager.io/issuer: "grafana-selfsigned"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - grafana.k8s.local
+    secretName: grafana-certs
+  rules:
+  - host: grafana.k8s.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000

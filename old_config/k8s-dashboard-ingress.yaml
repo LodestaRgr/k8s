@@ -1,0 +1,65 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned
+  namespace: kube-dashboard
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: selfsigned-crt
+  namespace: kube-dashboard
+  annotations:
+    cert-manager.io/delete-after-use: "true"
+spec:
+  secretName: kubernetes-dashboard-certs
+  isCA: false
+  issuerRef:
+    name: selfsigned
+    kind: Issuer
+  commonName: dashboard.k8s.local
+  dnsNames:
+  - dashboard.k8s.local
+  duration: 876000h # expired - 100 years
+  renewBefore: 8760h
+  # subject:
+  #   organizations:
+  #     - "My Organization"
+  #   organizationalUnits:
+  #     - "My Department"
+  #   countries:
+  #     - "RU"
+  #   provinces: # Region
+  #     - "Moscow"
+  #   localities: # City
+  #     - "Moscow"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  namespace: kube-dashboard
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    cert-manager.io/cluster-issuer: nameOfClusterIssuer
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - "dashboard.k8s.local"
+    secretName: kubernetes-dashboard-certs
+  rules:
+  - host: dashboard.k8s.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kubernetes-dashboard
+            port: 
+              number: 443

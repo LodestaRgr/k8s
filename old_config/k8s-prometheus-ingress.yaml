@@ -1,0 +1,60 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: prometheus-selfsigned
+  namespace: monitoring
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: prometheus-selfsigned-crt
+  namespace: monitoring
+  annotations:
+    cert-manager.io/delete-after-use: "true"
+spec:
+  secretName: prometheus-certs
+  isCA: false
+  issuerRef:
+    name: prometheus-selfsigned
+    kind: Issuer
+  commonName: prometheus.k8s.local
+  dnsNames:
+  - prometheus.k8s.local
+  duration: 876000h # expired in 100 years
+  renewBefore: 8760h
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus-ingress
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    #nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60s"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60s"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60s"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    #cert-manager.io/cluster-issuer: nameOfClusterIssuer
+    cert-manager.io/issuer: "prometheus-selfsigned"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - "prometheus.k8s.local"
+    secretName: prometheus-certs
+  rules:
+  - host: prometheus.k8s.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-k8s
+            port: 
+              number: 9090
