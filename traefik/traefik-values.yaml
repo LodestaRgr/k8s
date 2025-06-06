@@ -1,5 +1,12 @@
+additionalArguments:
+  - "--entrypoints.websecure.address=:443"
+  - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+  - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+
 ports:
   web:
-    redirectTo:
-      port: websecure
-      
+    expose:
+      default: true
+  websecure:
+    expose:
+      default: true
