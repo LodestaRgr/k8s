@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: nginx
+  annotations:
+    kube-vip.io/loadbalancerIPs: 172.20.0.90
+spec:
+  type: LoadBalancer
+  loadBalancerClass: kube-vip.io/kube-vip-class
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80
