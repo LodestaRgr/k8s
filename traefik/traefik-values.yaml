@@ -1,16 +1,9 @@
 additionalArguments:
-  - "--entrypoints.websecure.address=:443"
-  - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+  - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
   - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-
-ports:
-  web:
-    expose:
-      default: true
-  websecure:
-    expose:
-      default: true
-
+  - "--entryPoints.websecure.address=:443"
+  - "--entryPoints.websecure.http.encodequerysemicolons=true"
+  
 ingressRoute:
   dashboard:
     enabled: true
