@@ -1,11 +1,13 @@
-additionalArguments:
-  - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
-  - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-  - "--entryPoints.websecure.address=:443"
-  - "--entryPoints.websecure.http.encodequerysemicolons=true"
-  
+ports:
+  web:
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
+
 ingressRoute:
   dashboard:
     enabled: true
-    entryPoints: [web, websecure]
+    entryPoints: [websecure]
     matchRule: Host(`traefik.k8s.local`)
