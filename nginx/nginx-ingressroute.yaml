@@ -7,8 +7,10 @@ spec:
   entryPoints:
   - websecure
   routes:
-  - match: Host(`nginx.k8s.local`)
-    kind: Rule
-    services:
-    - name: nginx
-      port: 80
+    - match: Host(`nginx.k8s.local`) || Host(`nginx.k8s.bavaria-group.ru`)
+      kind: Rule
+      services:
+      - name: nginx
+        port: 80
+#  tls:
+#    secretName: tls-secret

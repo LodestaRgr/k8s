@@ -1,0 +1,26 @@
+ports:
+  web:
+    address: ":80"
+
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: it@bavaria-group.ru
+      storage: /data/acme.json
+      httpChallenge:
+        entryPoint: web
+
+#middlewares:
+#  redirect-to-https:
+#    redirectScheme:
+#      scheme: https
+#      permanent: true
+
+ingressRoute:
+  dashboard:
+    enabled: true
+    entryPoints: [websecure]
+    matchRule: Host(`traefik.k8s.local`)
