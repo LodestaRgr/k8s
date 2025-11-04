@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dnsdist
+  namespace: kube-system
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dnsdist
+  template:
+    metadata:
+      labels:
+        app: dnsdist
+    spec:
+      containers:
+      - name: dnsdist
+        image: powerdns/dnsdist-18
+        ports:
+        - containerPort: 53
+          protocol: UDP
+        - containerPort: 53
+          protocol: TCP
+        volumeMounts:
+        - name: config
+          mountPath: /etc/dnsdist
+      volumes:
+      - name: config
+        configMap:
+          name: dnsdist-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dnsdist-config
+  namespace: kube-system
+data:
+  dnsdist.conf: |
+    setLocal("0.0.0.0:5353")
+    newServer("172.20.0.1")
+    newServer("172.20.0.2")
+    setServerPolicy(firstAvailable)
+    webserver("0.0.0.0:8083")
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dnsdist
+  namespace: kube-system
+spec:
+  type: LoadBalancer
+  ports:
+  - name: dns-udp
+    port: 53
+    protocol: UDP
+    targetPort: 5353
+  - name: dns-tcp
+    port: 53
+    protocol: TCP
+    targetPort: 5353
+  - name: web
+    port: 8083
+    protocol: TCP
+    targetPort: 8083
+  selector:
+    app: dnsdist

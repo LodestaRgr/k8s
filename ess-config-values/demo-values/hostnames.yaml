@@ -1,0 +1,16 @@
+elementAdmin:
+  ingress:
+    host: admin.k8s.local
+elementWeb:
+  ingress:
+    host: chat.k8s.local
+matrixAuthenticationService:
+  ingress:
+    host: auth.k8s.local
+matrixRTC:
+  ingress:
+    host: mrtc.k8s.local
+serverName: k8s.local
+synapse:
+  ingress:
+    host: matrix.k8s.local

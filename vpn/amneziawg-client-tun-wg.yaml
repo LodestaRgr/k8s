@@ -1,0 +1,168 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vpn
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: amneziawg-config
+  namespace: vpn
+type: Opaque
+stringData:
+  wg0.conf: |
+    [Interface]
+    PrivateKey = jsKSONDkJbgjJZqBSo79PwfVe/wDOJ1mKtjrKfYhfMU=
+    Jc = 2
+    Jmin = 10
+    Jmax = 50
+    S1 = 39
+    S2 = 62
+    H1 = 775148604
+    H2 = 769128030
+    H3 = 1209156881
+    H4 = 1269974108
+    Address = 10.8.1.14/32
+    DNS = 1.1.1.1, 1.0.0.1
+    MTU = 1420
+
+    [Peer]
+    PublicKey = i/dUotWBvO07F1jSooSqhUsO/JOxZfA4DvjS4Gx2KVU=
+    PresharedKey = sejCxGmV4sOPHBgrbQywb+fik3Yg5VRRH5eNbIK+yz4=
+    AllowedIPs = 0.0.0.0/5, 8.0.0.0/7, 11.0.0.0/8, 12.0.0.0/6, 16.0.0.0/4, 32.0.0.0/3, 64.0.0.0/4, 80.0.0.0/5, 88.0.0.0/6, 92.0.0.0/7, 94.0.0.0/8, 95.0.0.0/9, 95.128.0.0/11, 95.160.0.0/14, 95.164.0.0/18, 95.164.64.0/20, 95.164.80.0/21, 95.164.88.0/23, 95.164.90.0/25, 95.164.90.128/28, 95.164.90.144/29, 95.164.90.152/32, 95.164.90.154/31, 95.164.90.156/30, 95.164.90.160/27, 95.164.90.192/26, 95.164.91.0/24, 95.164.92.0/22, 95.164.96.0/19, 95.164.128.0/17, 95.165.0.0/16, 95.166.0.0/15, 95.168.0.0/13, 95.176.0.0/12, 95.192.0.0/10, 96.0.0.0/3, 128.0.0.0/3, 160.0.0.0/5, 168.0.0.0/6, 172.0.0.0/12, 172.18.0.0/20, 172.18.16.0/22, 172.18.20.4/30, 172.18.20.8/29, 172.18.20.16/28, 172.18.20.32/27, 172.18.20.64/26, 172.18.20.128/25, 172.18.21.0/24, 172.18.22.0/23, 172.18.24.0/21, 172.18.32.0/19, 172.18.64.0/18, 172.18.128.0/17, 172.19.0.0/16, 172.20.0.0/14, 172.24.0.0/13, 172.32.0.0/11, 172.64.0.0/10, 172.128.0.0/9, 173.0.0.0/8, 174.0.0.0/7, 176.0.0.0/4, 192.0.0.0/2
+    Endpoint = 95.164.90.153:43105
+    PersistentKeepalive = 25
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wg-mt-keys
+  namespace: vpn
+type: Opaque
+stringData:
+  server_privatekey: "OG2pBPE0igFpMYJ0pIyLJNepv3vFTwHcNmplSidNN2I="
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amneziawg-client
+  namespace: vpn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amneziawg-client
+  template:
+    metadata:
+      labels:
+        app: amneziawg-client
+    spec:
+      containers:
+        - name: awg
+          image: isonecom/amneziawg-client:latest
+          securityContext:
+            privileged: true
+            capabilities: { add: ["NET_ADMIN","SYS_ADMIN"] }
+          volumeMounts:
+            - { name: wg-config,  mountPath: /config }
+            - { name: wg-mt-keys, mountPath: /run/wg-mt, readOnly: true }
+            - { name: dev-net-tun, mountPath: /dev/net/tun }
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -e
+              sysctl -w net.ipv4.conf.all.src_valid_mark=1 || true
+              sysctl -w net.ipv4.ip_forward=1 || true
+
+              # 1) основной выход в интернет — AmneziaWG
+              awg-quick down wg0 2>/dev/null|| true
+              awg-quick up /config/wg0.conf
+
+              # жёстко режем MTU на wg0 для стабильности через overlay / VIP
+              ip link set dev wg0 mtu 1280 || true
+              
+              # 2) WireGuard-сервер для MikroTik (wg-mt)
+              mkdir -p /etc/wireguard
+              SKEY="$(cat /run/wg-mt/server_privatekey)"
+              PKEY="$(printf '%s' "$SKEY" | wg pubkey)"
+              echo "$PKEY" | tee /run/wg-mt.pub >/dev/null
+
+              cat >/etc/wireguard/wg-mt.conf <<EOF
+              [Interface]
+              PrivateKey = $SKEY
+              Address = 192.168.99.14/30
+              ListenPort = 51822
+              MTU = 1280
+
+              # основной пир - MikroTik
+              [Peer]
+              # MikroTik public key
+              PublicKey = WdIRKFRvGAyEkO3P8LA0hG9/EeecpOGITX9++pBhMTo=
+              # адрес MikroTik внутри тоннеля
+              AllowedIPs = 0.0.0.0/0
+              PersistentKeepalive = 25
+              EOF
+
+              wg-quick down wg-mt 2>/dev/null|| true
+              wg-quick up /etc/wireguard/wg-mt.conf
+
+              # на всякий случай принудительно выставим MTU на интерфейсе wg-mt тоже
+              ip link set dev wg-mt mtu 1280 || true
+
+              echo "[iptables] allow forward wg-mt <-> wg0 and NAT out via wg0"
+              # Разрешаем клиентам с MikroTik уходить в wg0
+              iptables -C FORWARD -i wg-mt -o wg0 -j ACCEPT 2>/dev/null || \
+                iptables -A FORWARD -i wg-mt -o wg0 -j ACCEPT
+
+              # Разрешаем обратный трафик из wg0 к MikroTik
+              iptables -C FORWARD -i wg0 -o wg-mt -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
+                iptables -A FORWARD -i wg0 -o wg-mt -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+              # NAT: MikroTik (192.168.99.13) -> в AmneziaWG (wg0)
+              iptables -t nat -C POSTROUTING -s 192.168.99.13/32 -o wg0 -j MASQUERADE 2>/dev/null || \
+              iptables -t nat -A POSTROUTING -s 192.168.99.13/32 -o wg0 -j MASQUERADE
+
+              echo "[status dump]"
+              echo "WG-MT server public key: $PKEY"
+              echo "--- ip -br a ---"
+              ip -br a
+              echo "--- wg show ---"
+              wg show
+              echo "--- routes ---"
+              ip route
+              echo "--- iptables FORWARD ---"
+              iptables -L FORWARD -n -v
+              echo "--- iptables NAT ---"
+              iptables -t nat -L POSTROUTING -n -v
+
+              tail -f /dev/null
+          readinessProbe:
+            exec:
+              command: ["/bin/sh","-c","ip link show wg0 >/dev/null 2>&1 && ip link show wg-mt >/dev/null 2>&1"]
+            initialDelaySeconds: 3
+            periodSeconds: 5
+      volumes:
+        - name: wg-config
+          secret:
+            secretName: amneziawg-config
+            items: [{ key: wg0.conf, path: wg0.conf }]
+        - name: wg-mt-keys
+          secret: { secretName: wg-mt-keys }
+        - name: dev-net-tun
+          hostPath: { path: /dev/net/tun, type: CharDevice }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wg-mt
+  namespace: vpn
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 172.20.0.85
+  selector:
+    app: amneziawg-client
+  ports:
+    - name: wg-udp
+      protocol: UDP
+      port: 51822
+      targetPort: 51822
